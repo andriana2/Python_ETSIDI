@@ -1,20 +1,23 @@
 #se ha creado un .py llamado config.py 
 #donde se encuetra el TELEGRAM_TOKEN
 #TELEGRAM_TOKEN = "-------------------"
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from config import TELEGRAM_TOKEN
 import telebot
 import requests
-from geopy.geocoders import Nominatim 
+from geopy.geocoders import Nominatim #para la localizacion 
 import os #para borrar la imagen
 
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN) #interacion con tu bot
 
+#mensaje de start con una breve descripcion
 @bot.message_handler(commands=["start"])
 def cmd_start(message):
-    bot.reply_to(message, "Bienvenido a el localizador del ISS dispones de los comandos llamados localizacion y dibujar con el primero sabes la ubicacion en tiempo real y con dibuajar para ver en un mapa donde se encuentra el ISS")
+    bot.reply_to(message, "Bienvenido a el localizador del ISS dispones de los comandos llamados localizacion y dibujar")
 
+#la google maps no dispone de la localizacion de los mares y oceanos por eso se ha necesitado
+#hacer esta funcion
 def water(lat, lon):
     if ((lat <= 45.158 and lat >= 30.543) and (lon >= -5.187 and lon <= 22.209)):
         return ("Mar Mediteraneo")
@@ -58,6 +61,8 @@ def water(lat, lon):
     
     return ("Nuestra base de datos no reconoce esta zona")
 
+#localizacion primero coge las coordenadas de una api del ISS y despues las pasa por el google maps
+#si no las encuentra te envia a la funcion anterior
 @bot.message_handler(commands=["localizacion"])
 def bot_localizacion(message):
     response_iss = requests.get("http://api.open-notify.org/iss-now.json").json()
@@ -73,7 +78,9 @@ def bot_localizacion(message):
     else:
         bot.reply_to(message, location.address)
 
-
+#aqui se realiza enviar la imagen primero se borra la imagen anterior de mapa.png
+#después se añade el punto rojo donde se encuentra el ISS en el mapa
+#
 @bot.message_handler(commands=["dibujar"])
 def bot_draw(message):
     mapa = Image.open('world.png')
@@ -100,13 +107,13 @@ def bot_draw(message):
     pixel_y = int((latitud_max - lat_iss) * (360 / (latitud_max - latitud_min)))
 
     radio = 4  # Tamaño del círculo en píxeles
-    color = (255, 0, 0)  # Color rojo en formato RGB
+    color = (255, 0, 0)
     draw.ellipse((pixel_x - radio, pixel_y - radio, pixel_x + radio, pixel_y + radio), fill=color, outline=color)
-    
+
     mapa.save('mapa.png')
 
     cid = message.chat.id
-    bot.send_photo(cid, open('mapa.png', 'rb'))
+    bot.send_photo(cid, open('mapa.png', 'rb'))#OJO rb es necesario pq se envia en binario
 
 # MAIN ###############################################
 if __name__ == '__main__':
