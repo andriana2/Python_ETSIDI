@@ -65,7 +65,9 @@ def bot_localizacion(message):
     lon_iss = float(response_iss["iss_position"]["longitude"])
 
     geolocator = Nominatim(user_agent="https://www.google.es/maps/preview") 
+    
     location = geolocator.reverse(f"{lat_iss}, {lon_iss}") 
+    
     if (location == None):
         bot.reply_to(message, water(lat_iss,lon_iss))
     else:
@@ -100,15 +102,11 @@ def bot_draw(message):
     radio = 4  # Tamaño del círculo en píxeles
     color = (255, 0, 0)  # Color rojo en formato RGB
     draw.ellipse((pixel_x - radio, pixel_y - radio, pixel_x + radio, pixel_y + radio), fill=color, outline=color)
-
-# Opcionalmente, agregar un texto con las coordenadas
-    font = ImageFont.load_default()
-    texto = "no soy algo.py"
-    draw.text((pixel_x, pixel_y - 20), texto, fill=color, font=font)
+    
     mapa.save('mapa.png')
 
     cid = message.chat.id
-    bot.send_photo(cid, open('mapa.png'))
+    bot.send_photo(cid, open('mapa.png', 'rb'))
 
 # MAIN ###############################################
 if __name__ == '__main__':
